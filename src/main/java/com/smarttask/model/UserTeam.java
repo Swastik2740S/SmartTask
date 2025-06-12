@@ -19,12 +19,12 @@ public class UserTeam {
     private Role role;
 
     @ManyToOne
-    @MapsId("userId")
+    @MapsId("userId") // Maps userId from UserTeamKey
     @JoinColumn(name = "user_id")
     private User user;
 
     @ManyToOne
-    @MapsId("teamId")
+    @MapsId("teamId") // Maps teamId from UserTeamKey
     @JoinColumn(name = "team_id")
     private Team team;
 }

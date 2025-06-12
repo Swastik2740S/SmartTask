@@ -1,9 +1,15 @@
 package com.smarttask.model;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.io.Serializable;
 import java.util.Objects;
 
+@Setter
+@Getter
 public class UserTeamKey implements Serializable {
+    // Getters and Setters
     private Long userId;
     private Long teamId;
 
@@ -13,23 +19,6 @@ public class UserTeamKey implements Serializable {
     // Parameterized constructor
     public UserTeamKey(Long userId, Long teamId) {
         this.userId = userId;
-        this.teamId = teamId;
-    }
-
-    // Getters and Setters
-    public Long getUserId() {
-        return userId;
-    }
-
-    public void setUserId(Long userId) {
-        this.userId = userId;
-    }
-
-    public Long getTeamId() {
-        return teamId;
-    }
-
-    public void setTeamId(Long teamId) {
         this.teamId = teamId;
     }
 
