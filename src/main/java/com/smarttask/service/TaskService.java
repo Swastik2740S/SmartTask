@@ -2,8 +2,8 @@ package com.smarttask.service;
 
 import com.smarttask.dto.TaskRequestDTO;
 import com.smarttask.dto.TaskResponseDTO;
-import com.smarttask.enums.TaskStatus;
 import com.smarttask.enums.Priority;
+import com.smarttask.enums.TaskStatus;
 import com.smarttask.exception.ProjectNotFoundException;
 import com.smarttask.exception.UserNotFoundException;
 import com.smarttask.model.Project;
@@ -14,6 +14,9 @@ import com.smarttask.repository.TaskRepository;
 import com.smarttask.repository.UserRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -74,13 +77,17 @@ public class TaskService {
     }
 
     public List<TaskResponseDTO> getTasksByProjectId(Long projectId) {
-        return taskRepository.findByProject_ProjectId(projectId).stream()
+        // Non-paginated version
+        return taskRepository.findAllByProject_ProjectId(projectId, Pageable.unpaged())
+                .getContent().stream()
                 .map(task -> modelMapper.map(task, TaskResponseDTO.class))
                 .collect(Collectors.toList());
     }
 
     public List<TaskResponseDTO> getTasksByUserId(Long userId) {
-        return taskRepository.findByAssignedTo_UserId(userId).stream()
+        // Non-paginated version
+        return taskRepository.findAllByAssignedTo_UserId(userId, Pageable.unpaged())
+                .getContent().stream()
                 .map(task -> modelMapper.map(task, TaskResponseDTO.class))
                 .collect(Collectors.toList());
     }
@@ -117,4 +124,26 @@ public class TaskService {
         }
         taskRepository.deleteById(taskId);
     }
+
+    // PAGINATED METHODS
+
+    public Page<TaskResponseDTO> getAllTasksPaginated(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return taskRepository.findAll(pageable)
+                .map(task -> modelMapper.map(task, TaskResponseDTO.class));
+    }
+
+    public Page<TaskResponseDTO> getTasksByProjectIdPaginated(Long projectId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return taskRepository.findAllByProject_ProjectId(projectId, pageable)
+                .map(task -> modelMapper.map(task, TaskResponseDTO.class));
+    }
+
+    public Page<TaskResponseDTO> getTasksByUserIdPaginated(Long userId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return taskRepository.findAllByAssignedTo_UserId(userId, pageable)
+                .map(task -> modelMapper.map(task, TaskResponseDTO.class));
+    }
+
+
 }

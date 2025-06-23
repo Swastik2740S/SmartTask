@@ -1,17 +1,27 @@
 package com.smarttask.service;
 
+import com.smarttask.dto.PasswordChangeRequest;
 import com.smarttask.dto.UserRequestDTO;
 import com.smarttask.dto.UserResponseDTO;
+import com.smarttask.exception.InvalidPasswordException;
 import com.smarttask.exception.UserNotFoundException;
 import com.smarttask.model.User;
 import com.smarttask.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import com.smarttask.enums.Role;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class UserService {
@@ -37,9 +47,17 @@ public class UserService {
 
         User user = modelMapper.map(userDTO, User.class);
         user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+
+        // Set default role if not provided
+        if (user.getRole() == null) {
+            user.setRole(Role.MEMBER); // Use Role.USER if that's your default
+        }
+
         User savedUser = userRepository.save(user);
         return modelMapper.map(savedUser, UserResponseDTO.class);
     }
+
+
 
     // Read (Single)
     public UserResponseDTO getUserById(Long userId) {
@@ -79,4 +97,51 @@ public class UserService {
         }
         userRepository.deleteById(userId);
     }
+    // me method
+    public UserResponseDTO getUserByEmail(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + email));
+        return modelMapper.map(user, UserResponseDTO.class);
+    }
+
+    public UserResponseDTO updateUserByEmail(String email, UserRequestDTO userDTO) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + email));
+
+        // Update allowed fields
+        if (userDTO.getUsername() != null) {
+            user.setUsername(userDTO.getUsername());
+        }
+        if (userDTO.getEmail() != null) {
+            user.setEmail(userDTO.getEmail());
+        }
+
+        User updated = userRepository.save(user);
+        return modelMapper.map(updated, UserResponseDTO.class);
+    }
+
+    @Transactional
+    public void changePassword(String email, PasswordChangeRequest request) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + email));
+
+        // Verify current password
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+            throw new InvalidPasswordException("Current password is incorrect");
+        }
+
+        // Set new password
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+    }
+
+    @Transactional
+    public void deactivateUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId));
+        user.setActive(false);
+        userRepository.save(user);
+    }
 }
+
+

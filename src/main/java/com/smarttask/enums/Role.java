@@ -1,5 +1,7 @@
 package com.smarttask.enums;
 
 public enum Role {
-    ADMIN, MEMBER
+    ADMIN,
+    USER,
+    MEMBER
 }

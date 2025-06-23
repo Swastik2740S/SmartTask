@@ -3,20 +3,25 @@ package com.smarttask;
 import com.smarttask.dto.ProjectResponseDTO;
 import com.smarttask.dto.TaskResponseDTO;
 import com.smarttask.dto.UserTeamResponseDTO;
+import com.smarttask.enums.Role;
 import com.smarttask.model.Project;
 import com.smarttask.model.Task;
 import com.smarttask.model.User;
 import com.smarttask.model.UserTeam;
-import org.modelmapper.Condition;
+import com.smarttask.repository.UserRepository;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.PropertyMap;
-import org.modelmapper.TypeMap;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
+@EnableMethodSecurity
+@EnableWebMvc
 @SpringBootApplication
 public class SmartTaskApplication {
 
@@ -28,25 +33,25 @@ public class SmartTaskApplication {
 	public ModelMapper modelMapper() {
 		ModelMapper modelMapper = new ModelMapper();
 
-		// UserTeam mapping
+		// UserTeam mapping with null safety
 		modelMapper.addMappings(new PropertyMap<UserTeam, UserTeamResponseDTO>() {
 			@Override
 			protected void configure() {
-				map().setUserId(source.getUser().getUserId());
-				map().setTeamId(source.getTeam().getTeamId());
+				map().setUserId(source.getUser() != null ? source.getUser().getUserId() : null);
+				map().setTeamId(source.getTeam() != null ? source.getTeam().getTeamId() : null);
 				map().setRole(source.getRole());
 			}
 		});
 
-		// Project mapping
+		// Project mapping with null safety
 		modelMapper.addMappings(new PropertyMap<Project, ProjectResponseDTO>() {
 			@Override
 			protected void configure() {
-				map().setTeamId(source.getTeam().getTeamId());
+				map().setTeamId(source.getTeam() != null ? source.getTeam().getTeamId() : null);
 			}
 		});
 
-		// Task mapping with custom converter for assignedTo
+		// Task mapping with custom converter for assignedTo and null safety
 		modelMapper.addMappings(new PropertyMap<Task, TaskResponseDTO>() {
 			@Override
 			protected void configure() {
@@ -58,12 +63,28 @@ public class SmartTaskApplication {
 			}
 		});
 
+
+		modelMapper.typeMap(Project.class, ProjectResponseDTO.class).addMappings(mapper -> {
+			mapper.map(src -> src.getTeam().getTeamId(), ProjectResponseDTO::setTeamId);
+		});
+
 		return modelMapper;
 	}
 
-
 	@Bean
-	public PasswordEncoder passwordEncoder() {
-		return new BCryptPasswordEncoder();
+	public CommandLineRunner createAdmin(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+		return args -> {
+			String adminEmail = "admin@example.com";
+			if (userRepository.findByEmail(adminEmail).isEmpty()) {
+				User admin = new User();
+				admin.setEmail(adminEmail);
+				admin.setUsername("admin");
+				admin.setPassword(passwordEncoder.encode("admin123")); // Change this password
+				admin.setRole(Role.ADMIN);
+				userRepository.save(admin);
+				System.out.println("✅ Admin user created: " + adminEmail);
+			}
+		};
 	}
+
 }
