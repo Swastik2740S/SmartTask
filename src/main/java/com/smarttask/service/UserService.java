@@ -1,9 +1,9 @@
 package com.smarttask.service;
 
-import com.smarttask.dto.PasswordChangeRequest;
+
 import com.smarttask.dto.UserRequestDTO;
 import com.smarttask.dto.UserResponseDTO;
-import com.smarttask.exception.InvalidPasswordException;
+
 import com.smarttask.exception.UserNotFoundException;
 import com.smarttask.model.User;
 import com.smarttask.repository.UserRepository;
@@ -120,28 +120,7 @@ public class UserService {
         return modelMapper.map(updated, UserResponseDTO.class);
     }
 
-    @Transactional
-    public void changePassword(String email, PasswordChangeRequest request) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + email));
 
-        // Verify current password
-        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
-            throw new InvalidPasswordException("Current password is incorrect");
-        }
-
-        // Set new password
-        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
-        userRepository.save(user);
-    }
-
-    @Transactional
-    public void deactivateUser(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException(userId));
-        user.setActive(false);
-        userRepository.save(user);
-    }
 }
 
 

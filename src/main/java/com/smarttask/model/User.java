@@ -42,6 +42,5 @@ public class User {
     @OneToMany(mappedBy = "assignedTo")
     private List<Task> tasks = new ArrayList<>();
 
-    @Column(nullable = false, columnDefinition = "boolean default true")
-    private boolean active = true;
+
 }
