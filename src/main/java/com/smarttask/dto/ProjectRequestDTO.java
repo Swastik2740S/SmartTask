@@ -15,5 +15,5 @@ public class ProjectRequestDTO {
     @NotNull(message = "Team ID is required")
     private Long teamId;
 
-    private ProjectStatus status; // Optional on create, can default to PLANNING
+    private ProjectStatus status; // Optional on creation can default to PLANNING
 }

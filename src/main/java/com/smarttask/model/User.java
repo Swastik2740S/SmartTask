@@ -33,6 +33,9 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    @Column(nullable = false)
+    private boolean active = true; // Added for activation/deactivation
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 
@@ -41,6 +44,4 @@ public class User {
 
     @OneToMany(mappedBy = "assignedTo")
     private List<Task> tasks = new ArrayList<>();
-
-
 }
