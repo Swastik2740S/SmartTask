@@ -12,8 +12,13 @@ import com.smarttask.repository.UserRepository;
 import com.smarttask.repository.UserTeamRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class UserTeamService {
@@ -36,6 +41,7 @@ public class UserTeamService {
         this.modelMapper = modelMapper;
     }
 
+    // Add a user to a team
     @Transactional
     public UserTeamResponseDTO addUserToTeam(UserTeamRequestDTO request) {
         User user = userRepository.findById(request.getUserId())
@@ -43,7 +49,6 @@ public class UserTeamService {
         Team team = teamRepository.findById(request.getTeamId())
                 .orElseThrow(() -> new TeamNotFoundException(request.getTeamId()));
 
-        // Check for duplicate membership
         if (userTeamRepository.findById(new UserTeamKey(request.getUserId(), request.getTeamId())).isPresent()) {
             throw new UserAlreadyInTeamException(request.getUserId(), request.getTeamId());
         }
@@ -58,6 +63,7 @@ public class UserTeamService {
         return modelMapper.map(saved, UserTeamResponseDTO.class);
     }
 
+    // Update a user's role in a team
     @Transactional
     public UserTeamResponseDTO updateUserRoleInTeam(UserTeamRequestDTO request) {
         UserTeamKey key = new UserTeamKey(request.getUserId(), request.getTeamId());
@@ -69,11 +75,54 @@ public class UserTeamService {
         return modelMapper.map(updated, UserTeamResponseDTO.class);
     }
 
+    // Remove a user from a team
     @Transactional
     public void removeUserFromTeam(Long userId, Long teamId) {
         UserTeamKey key = new UserTeamKey(userId, teamId);
         UserTeam userTeam = userTeamRepository.findById(key)
                 .orElseThrow(() -> new UserNotInTeamException(userId, teamId));
         userTeamRepository.delete(userTeam);
+    }
+
+    // Get all members of a team
+    public List<UserTeamResponseDTO> getAllMembersOfTeam(Long teamId) {
+        return userTeamRepository.findByTeam_TeamId(teamId).stream()
+                .map(ut -> modelMapper.map(ut, UserTeamResponseDTO.class))
+                .collect(Collectors.toList());
+    }
+
+    // Get all teams for a user
+    public List<UserTeamResponseDTO> getAllTeamsForUser(Long userId) {
+        return userTeamRepository.findByUser_UserId(userId).stream()
+                .map(ut -> modelMapper.map(ut, UserTeamResponseDTO.class))
+                .collect(Collectors.toList());
+    }
+
+    // Get a specific user-team membership
+    public UserTeamResponseDTO getUserTeamMembership(Long userId, Long teamId) {
+        UserTeamKey key = new UserTeamKey(userId, teamId);
+        UserTeam ut = userTeamRepository.findById(key)
+                .orElseThrow(() -> new UserNotInTeamException(userId, teamId));
+        return modelMapper.map(ut, UserTeamResponseDTO.class);
+    }
+
+    // Paginated: Get all members of a team
+    public Page<UserTeamResponseDTO> getMembersOfTeamPaginated(Long teamId, Pageable pageable) {
+        return userTeamRepository.findByTeam_TeamId(teamId, pageable)
+                .map(ut -> modelMapper.map(ut, UserTeamResponseDTO.class));
+    }
+
+    // Paginated: Get all teams for a user
+    public Page<UserTeamResponseDTO> getTeamsForUserPaginated(Long userId, Pageable pageable) {
+        return userTeamRepository.findByUser_UserId(userId, pageable)
+                .map(ut -> modelMapper.map(ut, UserTeamResponseDTO.class));
+    }
+
+    // (Optional) Bulk add users to a team
+    @Transactional
+    public List<UserTeamResponseDTO> bulkAddUsersToTeam(List<UserTeamRequestDTO> requests) {
+        return requests.stream()
+                .map(this::addUserToTeam)
+                .collect(Collectors.toList());
     }
 }
