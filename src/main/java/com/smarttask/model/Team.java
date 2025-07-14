@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
@@ -27,9 +28,11 @@ public class Team {
     @CreationTimestamp
     private LocalDateTime createdAt;
 
+    @ToString.Exclude
     @OneToMany(mappedBy = "team", cascade = CascadeType.ALL)
     private List<UserTeam> members = new ArrayList<>();
 
+    @ToString.Exclude
     @OneToMany(mappedBy = "team")
     private List<Project> projects = new ArrayList<>();
 }

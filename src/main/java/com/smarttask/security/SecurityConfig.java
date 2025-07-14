@@ -63,6 +63,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
+                        // Public endpoints
                         .requestMatchers(
                                 "/auth/**",
                                 "/v3/api-docs",
@@ -74,6 +75,31 @@ public class SecurityConfig {
                                 "/configuration/security",
                                 "/webjars/**"
                         ).permitAll()
+
+                        // User-Team Membership Management
+                        // Only ADMIN or PROJECT_MANAGER can add or update memberships
+                        .requestMatchers(
+                                "/api/teams/members",
+                                "/api/teams/members/"
+                        ).hasAnyRole("ADMIN", "PROJECT_MANAGER")
+
+                        // Only ADMIN can perform bulk add/remove
+                        .requestMatchers(
+                                "/api/teams/members/bulk"
+                        ).hasRole("ADMIN")
+
+                        // Only ADMIN or PROJECT_MANAGER can update or delete memberships
+                        .requestMatchers(
+                                "/api/teams/members/{userId}/{teamId}"
+                        ).hasAnyRole("ADMIN", "PROJECT_MANAGER")
+
+                        // Read-only endpoints: any authenticated user
+                        .requestMatchers(
+                                "/api/teams/members/team/**",
+                                "/api/teams/members/user/**"
+                        ).authenticated()
+
+                        // Any other request requires authentication
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
@@ -83,4 +109,5 @@ public class SecurityConfig {
         http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
+
 }

@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
@@ -35,10 +36,12 @@ public class Task {
     @CreationTimestamp
     private LocalDateTime createdAt;
 
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "project_id", nullable = false)
     private Project project;
 
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "assigned_to")
     private User assignedTo;

@@ -2,9 +2,10 @@ package com.smarttask.service;
 
 import com.smarttask.dto.UserTeamRequestDTO;
 import com.smarttask.dto.UserTeamResponseDTO;
+import com.smarttask.enums.Role;
 import com.smarttask.exception.TeamNotFoundException;
-import com.smarttask.exception.UserNotFoundException;
 import com.smarttask.exception.UserAlreadyInTeamException;
+import com.smarttask.exception.UserNotFoundException;
 import com.smarttask.exception.UserNotInTeamException;
 import com.smarttask.model.*;
 import com.smarttask.repository.TeamRepository;
@@ -49,18 +50,38 @@ public class UserTeamService {
         Team team = teamRepository.findById(request.getTeamId())
                 .orElseThrow(() -> new TeamNotFoundException(request.getTeamId()));
 
-        if (userTeamRepository.findById(new UserTeamKey(request.getUserId(), request.getTeamId())).isPresent()) {
+        UserTeamKey key = new UserTeamKey(request.getUserId(), request.getTeamId());
+        if (userTeamRepository.findById(key).isPresent()) {
             throw new UserAlreadyInTeamException(request.getUserId(), request.getTeamId());
         }
 
         UserTeam userTeam = new UserTeam();
-        userTeam.setId(new UserTeamKey(request.getUserId(), request.getTeamId()));
+        userTeam.setId(key);
         userTeam.setUser(user);
         userTeam.setTeam(team);
         userTeam.setRole(request.getRole());
 
-        UserTeam saved = userTeamRepository.save(userTeam);
-        return modelMapper.map(saved, UserTeamResponseDTO.class);
+        userTeamRepository.save(userTeam);
+        UserTeam hydrated = userTeamRepository.findById(key).orElseThrow();
+        return modelMapper.map(hydrated, UserTeamResponseDTO.class);
+    }
+
+    // Bulk add users to a team
+    @Transactional
+    public List<UserTeamResponseDTO> bulkAddUsersToTeam(List<UserTeamRequestDTO> requests) {
+        return requests.stream()
+                .map(this::addUserToTeam)
+                .collect(Collectors.toList());
+    }
+
+    // Bulk remove users from a team
+    @Transactional
+    public void bulkRemoveUsersFromTeam(List<UserTeamKey> keys) {
+        keys.forEach(key -> {
+            if (userTeamRepository.existsById(key)) {
+                userTeamRepository.deleteById(key);
+            }
+        });
     }
 
     // Update a user's role in a team
@@ -71,8 +92,9 @@ public class UserTeamService {
                 .orElseThrow(() -> new UserNotInTeamException(request.getUserId(), request.getTeamId()));
 
         userTeam.setRole(request.getRole());
-        UserTeam updated = userTeamRepository.save(userTeam);
-        return modelMapper.map(updated, UserTeamResponseDTO.class);
+        userTeamRepository.save(userTeam);
+        UserTeam hydrated = userTeamRepository.findById(key).orElseThrow();
+        return modelMapper.map(hydrated, UserTeamResponseDTO.class);
     }
 
     // Remove a user from a team
@@ -84,21 +106,45 @@ public class UserTeamService {
         userTeamRepository.delete(userTeam);
     }
 
-    // Get all members of a team
+    // Get all members of a team (non-paginated)
+    @Transactional(readOnly = true)
     public List<UserTeamResponseDTO> getAllMembersOfTeam(Long teamId) {
         return userTeamRepository.findByTeam_TeamId(teamId).stream()
                 .map(ut -> modelMapper.map(ut, UserTeamResponseDTO.class))
                 .collect(Collectors.toList());
     }
 
-    // Get all teams for a user
+    // Get all members of a team (paginated)
+    @Transactional(readOnly = true)
+    public Page<UserTeamResponseDTO> getMembersOfTeamPaginated(Long teamId, Pageable pageable) {
+        return userTeamRepository.findByTeam_TeamId(teamId, pageable)
+                .map(ut -> modelMapper.map(ut, UserTeamResponseDTO.class));
+    }
+
+    // Filter team members by role (paginated)
+    @Transactional(readOnly = true)
+    public Page<UserTeamResponseDTO> getMembersOfTeamByRole(Long teamId, Role role, Pageable pageable) {
+        return userTeamRepository.findByTeam_TeamIdAndRole(teamId, role, pageable)
+                .map(ut -> modelMapper.map(ut, UserTeamResponseDTO.class));
+    }
+
+    // Get all teams for a user (non-paginated)
+    @Transactional(readOnly = true)
     public List<UserTeamResponseDTO> getAllTeamsForUser(Long userId) {
         return userTeamRepository.findByUser_UserId(userId).stream()
                 .map(ut -> modelMapper.map(ut, UserTeamResponseDTO.class))
                 .collect(Collectors.toList());
     }
 
+    // Get all teams for a user (paginated)
+    @Transactional(readOnly = true)
+    public Page<UserTeamResponseDTO> getTeamsForUserPaginated(Long userId, Pageable pageable) {
+        return userTeamRepository.findByUser_UserId(userId, pageable)
+                .map(ut -> modelMapper.map(ut, UserTeamResponseDTO.class));
+    }
+
     // Get a specific user-team membership
+    @Transactional(readOnly = true)
     public UserTeamResponseDTO getUserTeamMembership(Long userId, Long teamId) {
         UserTeamKey key = new UserTeamKey(userId, teamId);
         UserTeam ut = userTeamRepository.findById(key)
@@ -106,23 +152,8 @@ public class UserTeamService {
         return modelMapper.map(ut, UserTeamResponseDTO.class);
     }
 
-    // Paginated: Get all members of a team
-    public Page<UserTeamResponseDTO> getMembersOfTeamPaginated(Long teamId, Pageable pageable) {
-        return userTeamRepository.findByTeam_TeamId(teamId, pageable)
-                .map(ut -> modelMapper.map(ut, UserTeamResponseDTO.class));
-    }
+    // (Optional) Soft delete support (if you add a 'deleted' flag to UserTeam)
+    // public void softDeleteUserFromTeam(Long userId, Long teamId) { ... }
 
-    // Paginated: Get all teams for a user
-    public Page<UserTeamResponseDTO> getTeamsForUserPaginated(Long userId, Pageable pageable) {
-        return userTeamRepository.findByUser_UserId(userId, pageable)
-                .map(ut -> modelMapper.map(ut, UserTeamResponseDTO.class));
-    }
-
-    // (Optional) Bulk add users to a team
-    @Transactional
-    public List<UserTeamResponseDTO> bulkAddUsersToTeam(List<UserTeamRequestDTO> requests) {
-        return requests.stream()
-                .map(this::addUserToTeam)
-                .collect(Collectors.toList());
-    }
+    // (Optional) Audit logging can be implemented with @EntityListeners or a separate audit service
 }

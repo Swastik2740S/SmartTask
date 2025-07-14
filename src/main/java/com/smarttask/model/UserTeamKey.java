@@ -1,28 +1,23 @@
 package com.smarttask.model;
 
+import jakarta.persistence.Embeddable;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
 import java.io.Serializable;
 import java.util.Objects;
 
-@Setter
 @Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Embeddable
 public class UserTeamKey implements Serializable {
-    // Getters and Setters
     private Long userId;
     private Long teamId;
 
-    // Default constructor (required by JPA)
-    public UserTeamKey() {}
-
-    // Parameterized constructor
-    public UserTeamKey(Long userId, Long teamId) {
-        this.userId = userId;
-        this.teamId = teamId;
-    }
-
-    // equals() and hashCode() (required for composite keys)
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

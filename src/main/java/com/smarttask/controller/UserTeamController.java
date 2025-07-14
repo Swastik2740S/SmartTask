@@ -2,6 +2,8 @@ package com.smarttask.controller;
 
 import com.smarttask.dto.UserTeamRequestDTO;
 import com.smarttask.dto.UserTeamResponseDTO;
+import com.smarttask.enums.Role;
+import com.smarttask.model.UserTeamKey;
 import com.smarttask.service.UserTeamService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -51,11 +53,16 @@ public class UserTeamController {
     // Remove a user from a team
     @PreAuthorize("hasAnyRole('ADMIN', 'PROJECT_MANAGER')")
     @DeleteMapping("/{userId}/{teamId}")
-    public ResponseEntity<Void> removeUserFromTeam(
-            @PathVariable Long userId,
-            @PathVariable Long teamId
-    ) {
+    public ResponseEntity<Void> removeUserFromTeam(@PathVariable Long userId, @PathVariable Long teamId) {
         userTeamService.removeUserFromTeam(userId, teamId);
+        return ResponseEntity.noContent().build();
+    }
+
+    // Bulk remove users from a team
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/bulk")
+    public ResponseEntity<Void> bulkRemoveUsersFromTeam(@RequestBody List<UserTeamKey> keys) {
+        userTeamService.bulkRemoveUsersFromTeam(keys);
         return ResponseEntity.noContent().build();
     }
 
@@ -75,6 +82,18 @@ public class UserTeamController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         Page<UserTeamResponseDTO> members = userTeamService.getMembersOfTeamPaginated(teamId, PageRequest.of(page, size));
+        return ResponseEntity.ok(members);
+    }
+
+    // Filter team members by role (paginated)
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/team/{teamId}/role")
+    public ResponseEntity<Page<UserTeamResponseDTO>> getMembersOfTeamByRole(
+            @PathVariable Long teamId,
+            @RequestParam Role role,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Page<UserTeamResponseDTO> members = userTeamService.getMembersOfTeamByRole(teamId, role, PageRequest.of(page, size));
         return ResponseEntity.ok(members);
     }
 

@@ -11,6 +11,7 @@ import com.smarttask.model.UserTeam;
 import com.smarttask.repository.UserRepository;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.PropertyMap;
+import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -33,15 +34,26 @@ public class SmartTaskApplication {
 	public ModelMapper modelMapper() {
 		ModelMapper modelMapper = new ModelMapper();
 
-		// UserTeam mapping with null safety
 		modelMapper.addMappings(new PropertyMap<UserTeam, UserTeamResponseDTO>() {
 			@Override
 			protected void configure() {
-				map().setUserId(source.getUser() != null ? source.getUser().getUserId() : null);
-				map().setTeamId(source.getTeam() != null ? source.getTeam().getTeamId() : null);
+				// Safe userId mapping
+				using(ctx -> {
+					UserTeam source = (UserTeam) ctx.getSource();
+					return (source.getUser() != null) ? source.getUser().getUserId() : null;
+				}).map(source, destination.getUserId());
+
+				// Safe teamId mapping
+				using(ctx -> {
+					UserTeam source = (UserTeam) ctx.getSource();
+					return (source.getTeam() != null) ? source.getTeam().getTeamId() : null;
+				}).map(source, destination.getTeamId());
+
 				map().setRole(source.getRole());
 			}
 		});
+
+
 
 		// Project mapping with null safety
 		modelMapper.addMappings(new PropertyMap<Project, ProjectResponseDTO>() {
