@@ -40,3 +40,13 @@ src/main/resources/application.properties
 *.bak
 .DS_Store
 Thumbs.db
+
+# Ignore .env with secrets
+.env
+
+# Ignore Docker override or backups
+docker-compose.override.yml
+
+# Ignore any editor temp files
+*.swp
+*.swo
