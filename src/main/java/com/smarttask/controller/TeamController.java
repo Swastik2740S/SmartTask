@@ -59,6 +59,13 @@ public class TeamController {
             List<TeamResponseDTO> teams = teamService.getAllTeams();
             return ResponseEntity.ok(teams);
         }
+
+
+
+
+
+
+        
     }
 
     // Any authenticated user can search teams by name
