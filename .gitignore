@@ -2,8 +2,7 @@
 target/*
 !target/smarttask-0.0.1-SNAPSHOT.jar
 
-target/
-*.jar
+
 
 # Ignore Maven wrapper binaries
 .mvn/
