@@ -1,60 +1,65 @@
-# SmartTask
+<!-- Banners and Badges -->
+<p align="center">
+  <img src="https://img.shields.io/badge/Spring%20Boot-v3.5.0-brightgreen?logo=springboot&logoColor=white" alt="Spring Boot">
+  <img src="https://img.shields.io/badge/Next.js-%20-blue?logo=next.js" alt="Next.js">
+  <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="license">
+  <img src="https://img.shields.io/badge/build-passing-brightgreen" alt="Build Passing">
+  <img src="https://img.shields.io/badge/PostgreSQL-%20-blue?logo=postgresql" alt="PostgreSQL">
+</p>
 
-**SmartTask** is a modern, secure, and scalable task management system built with Spring Boot and designed for seamless integration with a Next.js frontend.  
-It features robust user authentication, role-based access control, and comprehensive task, project, and team management.
-
----
-
-## Table of Contents
-
-- [Features](#features)
-- [Technologies](#technologies)
-- [Installation](#installation)
-- [Configuration](#configuration)
-- [API Documentation](#api-documentation)
-- [Project Structure](#project-structure)
-- [License](#license)
+<h1 align="center">🚀 SmartTask</h1>
+<p align="center">
+  <b>A modern, secure, and scalable task management system.</b><br/>
+  <i>Built with Spring Boot & Next.js. Handles real-world team collaboration, security, and performance.</i>
+</p>
 
 ---
 
-## Features
+## 📚 Table of Contents
 
-- **User Management**
-    - Registration, login, and profile management
-    - Role-based access (Admin, Member)
-    - Self-service password change and profile updates
-    - Admin-only user creation, deactivation, and deletion
-- **Task Management**
-    - Create, update, delete, and mark tasks as complete
-    - Assign tasks to users
-- **Project Management**
-    - Create, update, and delete projects
-- **Team Management**
-    - Create, update, and delete teams
-    - Assign users to teams
-- **Security**
-    - JWT-based authentication
-    - Secure password storage with BCrypt
-    - CORS configuration for frontend integration
-- **API Documentation**
-    - Swagger (OpenAPI) documentation for easy API exploration
+- [🚩 Features](#-features)
+- [🛠️ Tech Stack](#-tech-stack)
+- [⚡ Quick Start](#-quick-start)
+- [⚙️ Configuration](#️-configuration)
+- [📖 API Documentation](#-api-documentation)
+- [📂 Project Structure](#-project-structure)
+- [🙌 Contribution](#-contribution)
+- [📝 License](#-license)
 
 ---
 
-## Technologies
+## 🚩 Features
 
-- **Backend**
-    - Spring Boot 3.5.0
-    - Spring Security
-    - JWT (JSON Web Tokens)
-    - ModelMapper
-    - PostgreSQL
-    - Lombok
-- **Frontend**
-    - Next.js (JavaScript/Tailwind CSS)
-- **Build & Deployment**
-    - Maven
-    - Docker (optional)
+- 👤 **User Management**
+  - Registration & login
+  - Profile management
+  - Role-based access (Admin / Project Manager / Team Lead / Member / Viewer)
+  - Self-service password change & updates
+  - Admin user creation, deactivation, deletion
+- ✅ **Task Management**
+  - Create, update, delete, and mark tasks as complete
+  - Assign tasks to users
+- 📁 **Project Management**
+  - Create, update, delete projects
+- 👫 **Team Management**
+  - Create, update, delete teams & assign users
+- 🔒 **Security**
+  - JWT authentication, BCrypt hashed passwords, CORS for frontend integration
+- 📑 **API Docs**
+  - Swagger (OpenAPI) for easy API exploration
+- 📈 **Performance**
+  - Handles up to 30 requests per second (cloud-deployed, scalable)
+---
+
+
+## 🛠️ Tech Stack
+
+| Layer      | Technologies                                                                                           |
+|------------|-------------------------------------------------------------------------------------------------------|
+| **Backend**| ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.0-brightgreen) Spring Security, JWT, ModelMapper, PostgreSQL, Lombok |
+| **Frontend**| ![Next.js](https://img.shields.io/badge/Next.js-13-blue) Tailwind CSS                                |
+| **DevOps** | Docker, AWS EC2, Maven                                                                                |
+| **APIs**   | RESTful, documented via Swagger/OpenAPI                                                               |
 
 ---
 
