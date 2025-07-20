@@ -13,6 +13,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/users")
@@ -107,11 +108,13 @@ public class UserController {
     }
 
     // Update user password (Authenticated user)
+
     @PutMapping("/{userId}/password")
     public ResponseEntity<Void> updatePassword(
             @PathVariable Long userId,
-            @RequestParam String newPassword
+            @RequestBody Map<String, String> body
     ) {
+        String newPassword = body.get("newPassword");
         userService.updatePassword(userId, newPassword);
         return ResponseEntity.noContent().build();
     }
