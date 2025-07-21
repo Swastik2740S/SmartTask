@@ -43,35 +43,41 @@ public class SecurityConfig {
         return new ProviderManager(authProvider);
     }
 
+    // --- CORRECTED: CORS CONFIGURATION ---
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
+
+        // Make sure all frontend domains you use are here, https protocol included, no trailing slash!
         configuration.setAllowedOrigins(Arrays.asList(
                 "http://localhost:3000",
                 "https://smart-front-one.vercel.app",
                 "https://smart-front-35tkuzfa1-swastik2740s-projects.vercel.app"
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With"));
+        configuration.setAllowedHeaders(Arrays.asList(
+                "Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With"
+        ));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
 
+        // IMPORTANT: Register CORS config for all API endpoints
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
 
-
+    // --- SECURITY FILTER CHAIN ---
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+                // Enable CORS with our configuration
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         // Public endpoints
                         .requestMatchers(
                                 "/auth/**",
-                                "/v3/api-docs",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
@@ -81,24 +87,13 @@ public class SecurityConfig {
                                 "/webjars/**"
                         ).permitAll()
 
-                        // User-Team Membership Management
-                        // Only ADMIN or PROJECT_MANAGER can add or update memberships
+                        // User-Team Management
                         .requestMatchers(
                                 "/api/teams/members",
                                 "/api/teams/members/"
                         ).hasAnyRole("ADMIN", "PROJECT_MANAGER")
-
-                        // Only ADMIN can perform bulk add/remove
-                        .requestMatchers(
-                                "/api/teams/members/bulk"
-                        ).hasRole("ADMIN")
-
-                        // Only ADMIN or PROJECT_MANAGER can update or delete memberships
-                        .requestMatchers(
-                                "/api/teams/members/{userId}/{teamId}"
-                        ).hasAnyRole("ADMIN", "PROJECT_MANAGER")
-
-                        // Read-only endpoints: any authenticated user
+                        .requestMatchers("/api/teams/members/bulk").hasRole("ADMIN")
+                        .requestMatchers("/api/teams/members/{userId}/{teamId}").hasAnyRole("ADMIN", "PROJECT_MANAGER")
                         .requestMatchers(
                                 "/api/teams/members/team/**",
                                 "/api/teams/members/user/**"
@@ -107,12 +102,9 @@ public class SecurityConfig {
                         // Any other request requires authentication
                         .anyRequest().authenticated()
                 )
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                );
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
-
 }
