@@ -46,21 +46,17 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOriginPatterns(List.of(
-                "http://localhost:3000",
-                "https://smart-front-one.vercel.app",
-                "https://smart-front-35tkuzfa1-swastik2740s-projects.vercel.app",
-                "https://smart-front-iota.vercel.app"
-        ));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With"));
-        config.setAllowCredentials(true);
-        config.setMaxAge(3600L);
+        config.setAllowedOrigins(List.of("*")); // ⚠️ No origin restriction
+        config.setAllowedMethods(List.of("*")); // Allow all methods: GET, POST, etc.
+        config.setAllowedHeaders(List.of("*")); // Allow all headers
+        config.setAllowCredentials(false); // ⚠️ Must be false when the origin is '*'
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
     }
+
+
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {

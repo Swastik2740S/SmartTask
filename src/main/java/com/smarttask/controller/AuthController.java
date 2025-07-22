@@ -13,7 +13,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.*;
-@CrossOrigin(origins = "https://smart-front-iota.vercel.app", allowCredentials = "true")
+
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
