@@ -46,15 +46,20 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("*")); // ⚠️ No origin restriction
-        config.setAllowedMethods(List.of("*")); // Allow all methods: GET, POST, etc.
-        config.setAllowedHeaders(List.of("*")); // Allow all headers
-        config.setAllowCredentials(false); // ⚠️ Must be false when the origin is '*'
+        config.setAllowedOriginPatterns(List.of(
+                "https://smart-front-frk8ht2lz-swastik2740s-projects.vercel.app",
+                "https://smart-front-8sdgvzy96-swastik2740s-projects.vercel.app",
+                "http://localhost:3000"
+        ));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true); // ✅ REQUIRED for cookies/auth headers
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
     }
+
 
 
 
