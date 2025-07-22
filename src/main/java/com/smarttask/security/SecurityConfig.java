@@ -49,12 +49,13 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
 
         // Make sure all frontend domains you use are here, https protocol included, no trailing slash!
-        configuration.setAllowedOrigins(Arrays.asList(
+        configuration.setAllowedOriginPatterns(List.of(
                 "http://localhost:3000",
                 "https://smart-front-one.vercel.app",
                 "https://smart-front-35tkuzfa1-swastik2740s-projects.vercel.app",
                 "https://smart-front-iota.vercel.app"
         ));
+
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList(
                 "Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With"
