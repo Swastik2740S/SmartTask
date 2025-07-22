@@ -13,7 +13,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.*;
-
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
@@ -25,24 +24,24 @@ public class AuthController {
     private UserService userService;
 
     @Autowired
-    private MyUserDetailsService userDetailsService; // Fixed: Use separate service
-
-    @Autowired
     private JwtUtil jwtUtil;
 
     @PostMapping("/login")
     public AuthResponse createAuthenticationToken(@RequestBody AuthRequest authRequest) throws Exception {
         try {
-            // Use email instead of username since your User entity uses email
+            // Authenticate email/password
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(authRequest.getEmail(), authRequest.getPassword())
             );
         } catch (AuthenticationException e) {
             throw new Exception("Incorrect email or password", e);
         }
-        final var userDetails = userDetailsService.loadUserByUsername(authRequest.getEmail());
-        final String jwt = jwtUtil.generateToken(userDetails.getUsername());
-        return new AuthResponse(jwt);
+
+        // Load the full User object (not just UserDetails)
+        var user = userService.getUserByEmail(authRequest.getEmail());
+        String jwt = jwtUtil.generateToken(user.getEmail(), user.getRole().name()); // include role in token
+
+        return new AuthResponse(jwt, user.getRole().name()); // include jwt + role
     }
 
     @PostMapping("/register")
